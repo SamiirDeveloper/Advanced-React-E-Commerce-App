@@ -5,7 +5,7 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../app/cartSlice";
 
-// Define TypeScript types
+// TypeScript interface for product
 export interface Product {
   id: number;
   title: string;
@@ -23,7 +23,7 @@ const Home: React.FC = () => {
   const dispatch = useDispatch();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  // Fetch all categories dynamically
+  // Fetch all categories
   const { data: categories = [] } = useQuery<string[]>({
     queryKey: ["categories"],
     queryFn: async () => {
@@ -45,7 +45,7 @@ const Home: React.FC = () => {
     },
   });
 
-  // Fallback image in case of broken URLs
+  // Fallback for broken images
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = "https://via.placeholder.com/150";
   };
@@ -77,13 +77,15 @@ const Home: React.FC = () => {
             <div className="card h-100 shadow-sm">
               <img
                 src={product.image}
-                className="card-img-top p-3"
                 alt={product.title}
                 onError={handleImageError}
                 style={{ height: "250px", objectFit: "contain" }}
+                className="card-img-top p-3"
               />
               <div className="card-body d-flex flex-column">
+                {/* Product title */}
                 <h5 className="card-title">{product.title}</h5>
+
                 <p className="card-text text-truncate">{product.description}</p>
                 <p className="mb-1">
                   <strong>Category:</strong> {product.category}
@@ -94,9 +96,13 @@ const Home: React.FC = () => {
                 <p className="mb-3">
                   <strong>Price:</strong> ${product.price}
                 </p>
+
+                {/* Add to Cart */}
                 <button
                   className="btn btn-primary mt-auto"
-                  onClick={() => dispatch(addToCart({ ...product, quantity: 1 }))}
+                  onClick={() =>
+                    dispatch(addToCart({ ...product, quantity: 1 }))
+                  }
                 >
                   Add to Cart
                 </button>
@@ -104,6 +110,7 @@ const Home: React.FC = () => {
             </div>
           </div>
         ))}
+
         {products.length === 0 && (
           <p className="text-center">No products found for this category.</p>
         )}
