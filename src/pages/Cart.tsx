@@ -1,68 +1,108 @@
 import React, { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "../app/store";
-import { removeFromCart, clearCart } from "../app/cartSlice";
+import { useQuery } from "@tanstack/react-query";
+import { useDispatch } from "react-redux";
+import { addToCart } from "../app/cartSlice";
+import axios from "axios";
 
-const Cart: React.FC = () => {
-  const [cartOpen, setCartOpen] = useState(false);
-  const cartItems = useSelector((state: RootState) => state.cart) || [];
+interface Product {
+  id: number;
+  title: string;
+  price: number;
+  description: string;
+  category: string;
+  image: string;
+  rating: { rate: number; count: number };
+}
+
+// Fetch categories from API
+const fetchCategories = async () => {
+  const res = await axios.get<string[]>("https://fakestoreapi.com/products/categories");
+  return res.data;
+};
+
+// Fetch products from API (all or by category)
+const fetchProducts = async (category?: string) => {
+  const url = category
+    ? `https://fakestoreapi.com/products/category/${category}`
+    : "https://fakestoreapi.com/products";
+  const res = await axios.get<Product[]>(url);
+  return res.data;
+};
+
+const Home: React.FC = () => {
   const dispatch = useDispatch();
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
-  const totalPrice = cartItems.reduce(
-    (acc, item) => acc + (item.price * (item.quantity || 1)),
-    0
-  );
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: fetchCategories,
+  });
 
-  const totalItems = cartItems.reduce(
-    (acc, item) => acc + (item.quantity || 0),
-    0
-  );
+  const { data: products, isLoading } = useQuery({
+    queryKey: ["products", selectedCategory],
+    queryFn: () => fetchProducts(selectedCategory),
+  });
+
+  if (isLoading) return <p>Loading products...</p>;
 
   return (
     <>
-      <button
-        className="btn btn-primary"
-        onClick={() => setCartOpen(!cartOpen)}
-      >
-        🛒 {totalItems}
-      </button>
+      <div className="mb-4">
+        <select
+          className="form-select w-auto"
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+        >
+          <option value="">All Categories</option>
+          {categories?.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      <div className={`cart-drawer ${cartOpen ? "open" : ""}`}>
-        <h2>Your Cart</h2>
-        {cartItems.length === 0 ? (
-          <p>Your cart is empty.</p>
-        ) : (
-          <>
-            <ul>
-              {cartItems.map((item) => (
-                <li key={item.id}>
-                  <img src={item.image} alt={item.title} />
-                  <div>
-                    <span>{item.title}</span>
-                    <span>Qty: {item.quantity}</span>
-                  </div>
-                  <span>${item.price}</span>
-                  <button onClick={() => dispatch(removeFromCart(item.id))}>
-                    Remove
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <p>Total: ${totalPrice.toFixed(2)}</p>
-            <button
-              className="checkout"
-              onClick={() => {
-                dispatch(clearCart());
-                alert("Checkout successful!");
-              }}
-            >
-              Checkout
-            </button>
-          </>
-        )}
+      <div className="row">
+        {products?.map((product) => (
+          <div key={product.id} className="col-md-4 mb-4">
+            <div className="card h-100">
+              <img
+                src={product.image}
+                className="card-img-top"
+                alt={product.title}
+                onError={(e) =>
+                  ((e.target as HTMLImageElement).src = "https://via.placeholder.com/150")
+                }
+              />
+              <div className="card-body d-flex flex-column">
+                <h5 className="card-title">{product.title}</h5>
+                <p className="card-text flex-grow-1">{product.description}</p>
+                <p className="card-text">
+                  <strong>${product.price}</strong> | Rating: {product.rating.rate} ⭐
+                </p>
+                <button
+                  className="btn btn-primary mt-auto"
+                  onClick={() =>
+                    dispatch(
+                      addToCart({
+                        id: product.id,
+                        title: product.title,
+                        price: product.price,
+                        image: product.image,
+                        quantity: 1,
+                      })
+                    )
+                  }
+                >
+                  Add to Cart
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </>
   );
 };
 
-export default Cart;
+export default Home;
