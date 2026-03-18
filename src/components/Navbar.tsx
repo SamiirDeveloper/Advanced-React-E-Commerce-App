@@ -1,4 +1,6 @@
+// src/components/Navbar.tsx
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../app/store";
 import { removeFromCart, clearCart } from "../app/cartSlice";
@@ -8,7 +10,7 @@ const Navbar: React.FC = () => {
   const dispatch = useDispatch();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // Calculate totals
+  // Calculate total quantity and total price
   const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = cartItems
     .reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -21,16 +23,19 @@ const Navbar: React.FC = () => {
     }
     dispatch(clearCart());
     alert("Checkout successful! Your cart is now empty.");
-    setDropdownOpen(false); // Close dropdown after checkout
+    setDropdownOpen(false);
   };
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
       <div className="container">
-        <span className="navbar-brand">Samir's Advanced React FakeStore</span>
+        {/* Clickable brand */}
+        <Link className="navbar-brand" to="/">
+          Samir's Advanced React FakeStore
+        </Link>
 
+        {/* Cart Dropdown */}
         <div className="ms-auto position-relative">
-          {/* Cart Button */}
           <button
             className="btn btn-outline-light position-relative"
             onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -38,7 +43,6 @@ const Navbar: React.FC = () => {
             Cart ({totalQuantity})
           </button>
 
-          {/* Dropdown */}
           {dropdownOpen && (
             <div
               className="dropdown-menu dropdown-menu-end p-3 shadow"
@@ -48,6 +52,7 @@ const Navbar: React.FC = () => {
                 <p className="text-center mb-0">Cart is empty</p>
               ) : (
                 <>
+                  {/* List cart items */}
                   {cartItems.map((item) => (
                     <div
                       key={item.id}
@@ -61,10 +66,14 @@ const Navbar: React.FC = () => {
                           height={40}
                           className="me-2"
                         />
-                        <span>{item.title} x {item.quantity}</span>
+                        <span>
+                          {item.title} x {item.quantity}
+                        </span>
                       </div>
                       <div>
-                        <span className="me-2">${(item.price * item.quantity).toFixed(2)}</span>
+                        <span className="me-2">
+                          ${(item.price * item.quantity).toFixed(2)}
+                        </span>
                         <button
                           className="btn btn-sm btn-danger"
                           onClick={() => dispatch(removeFromCart(item.id))}
@@ -86,7 +95,7 @@ const Navbar: React.FC = () => {
                     <span>${totalPrice}</span>
                   </div>
 
-                  {/* Checkout Button */}
+                  {/* Checkout button */}
                   <button
                     className="btn btn-success w-100"
                     onClick={handleCheckout}
