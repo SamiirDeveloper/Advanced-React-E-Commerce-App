@@ -1,11 +1,9 @@
-// types.ts
-export interface CartItem {
+export interface Product {
   id: number;
   title: string;
   price: number;
+  description: string;
+  category: string;
   image: string;
-  quantity?: number;
-  description?: string;
-  category?: string;
-  rating?: { rate: number; count: number };
+  rating: { rate: number; count: number };
 }
