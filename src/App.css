@@ -37,28 +37,35 @@ a {
   max-width: 1200px;
   margin: 0 auto;
   padding: 1.5rem 1rem;
-  text-align: center;
+  position: relative;
 }
 
 /* =========================
-   Header Layout
+   Header
 ========================= */
-.header {
+header {
   position: relative;
   text-align: center;
   margin-bottom: 2rem;
 }
 
-.header h1 {
-  margin: 0 auto;
+header h1 {
+  margin: 0;
 }
 
-/* Cart (top right aligned with header) */
-.cart-wrapper {
-  position: absolute;
-  top: 50%;
+/* Cart Button Top-Right */
+header .position-absolute {
+  top: 0;
   right: 0;
-  transform: translateY(-50%);
+  margin: 1rem;
+  z-index: 100;
+}
+
+header .position-absolute button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 /* =========================
@@ -68,7 +75,6 @@ a {
   display: grid;
   gap: 1.75rem;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  text-align: left;
 }
 
 /* =========================
@@ -82,11 +88,10 @@ a {
   display: flex;
   flex-direction: column;
   transition: all 0.25s ease;
-  position: relative;
 }
 
 .product-card:hover {
-  transform: translateY(-6px) scale(1.01);
+  transform: translateY(-4px) scale(1.01);
   box-shadow: 0 12px 30px rgba(0,0,0,0.12);
 }
 
@@ -108,9 +113,7 @@ a {
 .product-card .product-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #212529;
   margin-bottom: 0.4rem;
-
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -137,7 +140,6 @@ a {
   color: #495057;
   margin-bottom: 1rem;
   flex: 1;
-
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -187,108 +189,91 @@ a {
 }
 
 /* =========================
-   Shopping Cart
+   Cart Drawer
 ========================= */
-.cart {
-  background-color: #fff;
-  padding: 1.75rem;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.07);
-  max-width: 850px;
-  margin: 2rem auto;
-  text-align: left;
+.cart-drawer {
+  position: fixed;
+  top: 0;
+  right: -400px;
+  width: 350px;
+  height: 100%;
+  background: #fff;
+  box-shadow: -6px 0 20px rgba(0,0,0,0.15);
+  padding: 1.5rem;
+  transition: right 0.3s ease;
+  z-index: 1050;
+  overflow-y: auto;
 }
 
-.cart h2 {
-  margin-bottom: 1.2rem;
+.cart-drawer.open {
+  right: 0;
 }
 
-.cart ul {
+.cart-drawer h2 {
+  margin-bottom: 1rem;
+}
+
+.cart-drawer ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.cart li {
+.cart-drawer li {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  border-bottom: 1px solid #e9ecef;
-  padding: 0.9rem 0;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
-.cart img {
-  width: 70px;
-  height: 70px;
+.cart-drawer img {
+  width: 60px;
+  height: 60px;
   object-fit: contain;
-  border-radius: 10px;
+  border-radius: 8px;
   background: #f8f9fa;
-  padding: 5px;
+  padding: 4px;
 }
 
-.cart button {
-  background-color: #dc3545;
-  color: #fff;
+.cart-drawer button {
   border: none;
-  padding: 0.45rem 0.9rem;
-  border-radius: 8px;
   cursor: pointer;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
   transition: all 0.2s ease;
 }
 
-.cart button:hover {
+.cart-drawer .btn-danger {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.cart-drawer .btn-danger:hover {
   background-color: #bb2d3b;
 }
 
-.cart .checkout {
+.cart-drawer .btn-success {
   background: linear-gradient(135deg, #198754, #157347);
-  padding: 0.7rem 1.3rem;
-  margin-top: 1.2rem;
-  font-weight: 500;
-}
-
-.cart .checkout:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(25,135,84,0.3);
+  color: #fff;
 }
 
 /* =========================
-   Responsive Styles
+   Responsive
 ========================= */
-
-/* Tablet */
 @media (max-width: 768px) {
-  .product-grid {
-    gap: 1.25rem;
-  }
-
   .product-card img {
     height: 180px;
   }
 
-  .cart li {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-/* Mobile */
-@media (max-width: 576px) {
-  .cart-wrapper {
-    position: static;
-    transform: none;
-    margin-top: 0.75rem;
+  .cart-drawer {
+    width: 90%;
   }
 }
 
 @media (max-width: 480px) {
   .container {
-    padding: 1rem 0.75rem;
-  }
-
-  .product-card {
-    border-radius: 12px;
+    padding: 1rem;
   }
 
   .product-card img {
@@ -297,13 +282,5 @@ a {
 
   .product-card .product-title {
     font-size: 0.95rem;
-  }
-
-  .cart {
-    padding: 1.2rem;
-  }
-
-  .category-select select {
-    width: 100%;
   }
 }

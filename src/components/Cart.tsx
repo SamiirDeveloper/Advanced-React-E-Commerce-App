@@ -1,61 +1,75 @@
-// /pages/Cart.tsx
-import React from "react";
-import { removeFromCart, clearCart } from "../app/cartSlice";
-import { useAppSelector, useAppDispatch } from "../app/hooks";
+// src/components/Cart.tsx
+import React, { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../app/store";
+import { removeFromCart, clearCart, CartItem } from "../app/cartSlice";
 
-export default function Cart() {
-  const dispatch = useAppDispatch();
-  const items = useAppSelector((state) => state.cart.items);
+const Cart: React.FC = () => {
+  const [cartOpen, setCartOpen] = useState(false);
+  const cartItems: CartItem[] = useSelector((state: RootState) => state.cart) || [];
+  const dispatch = useDispatch();
 
-  // Calculate total price
-  const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-  if (items.length === 0) return <p>Your cart is empty.</p>;
+  const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const totalPrice = cartItems.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0
+  );
 
   return (
-    <div className="cart" style={{ padding: "1rem" }}>
-      <h2>Shopping Cart</h2>
+    <>
+      {/* Cart Button */}
+      <button
+        className="btn btn-primary position-relative"
+        onClick={() => setCartOpen(!cartOpen)}
+      >
+        🛒 {totalItems}
+      </button>
 
-      <ul style={{ listStyle: "none", padding: 0 }}>
-        {items.map((item) => (
-          <li
-            key={item.id}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "1rem",
-              marginBottom: "1rem",
-              borderBottom: "1px solid #ccc",
-              paddingBottom: "0.5rem",
-            }}
-          >
-            <img
-              src={item.image}
-              alt={item.title}
-              style={{ width: "80px", height: "80px", objectFit: "cover" }}
-              onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) =>
-                (e.currentTarget.src = "https://via.placeholder.com/80")
-              }
-            />
+      {/* Slide-out Cart Drawer */}
+      <div className={`cart-drawer ${cartOpen ? "open" : ""}`}>
+        <h2>Your Cart</h2>
+        {cartItems.length === 0 ? (
+          <p>Your cart is empty.</p>
+        ) : (
+          <>
+            <ul>
+              {cartItems.map((item) => (
+                <li key={item.id} className="d-flex align-items-center justify-content-between mb-2">
+                  <img src={item.image} alt={item.title} />
+                  <div className="flex-grow-1 ms-2">
+                    <p className="mb-0">{item.title}</p>
+                    <small>Qty: {item.quantity}</small>
+                  </div>
+                  <span>${(item.price * item.quantity).toFixed(2)}</span>
+                  <button
+                    className="btn btn-danger btn-sm ms-2"
+                    onClick={() => dispatch(removeFromCart(item.id))}
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
 
-            <div style={{ flex: 1 }}>
-              <h4 style={{ margin: 0 }}>{item.title}</h4>
-              <p style={{ margin: 0 }}>Quantity: {item.quantity}</p>
-            </div>
-
-            <span style={{ fontWeight: "bold" }}>${(item.price * item.quantity).toFixed(2)}</span>
-
-            <button onClick={() => dispatch(removeFromCart(item.id))}>Remove</button>
-          </li>
-        ))}
-      </ul>
-
-      <div style={{ marginTop: "1rem" }}>
-        <p>
-          <strong>Total:</strong> ${totalPrice.toFixed(2)}
-        </p>
-        <button onClick={() => dispatch(clearCart())}>Checkout</button>
+            <hr />
+            <p>
+              <strong>Total Items:</strong> {totalItems} <br />
+              <strong>Total Price:</strong> ${totalPrice.toFixed(2)}
+            </p>
+            <button
+              className="btn btn-success w-100 mt-2"
+              onClick={() => {
+                dispatch(clearCart());
+                alert("Checkout successful!");
+              }}
+            >
+              Checkout
+            </button>
+          </>
+        )}
       </div>
-    </div>
+    </>
   );
-}
+};
+
+export default Cart;
