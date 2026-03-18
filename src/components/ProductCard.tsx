@@ -35,7 +35,7 @@ export default function ProductCard({ product }: { product: Product }) {
       <p>{product.description}</p>
       <p>Rating: {product.rating.rate}</p>
 
-      <button onClick={() => dispatch(addToCart(product))}>
+      <button onClick={() => dispatch(addToCart({ ...product, quantity: 1 }))}>
         Add to Cart
       </button>
     </div>
