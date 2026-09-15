@@ -8,7 +8,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Logout from "./pages/Logout";
 import Profile from "./pages/Profile";
-import Navbar from "./components/Navbar";
+import Navbar from "./components/Navbar/Navbar";
 
 const queryClient = new QueryClient();
 

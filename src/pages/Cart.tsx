@@ -1,108 +1,160 @@
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useDispatch } from "react-redux";
-import { addToCart } from "../app/cartSlice";
-import axios from "axios";
+import React from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../app/store";
+import { removeFromCart, clearCart } from "../app/cartSlice";
 
-interface Product {
-  id: number;
-  title: string;
-  price: number;
-  description: string;
-  category: string;
-  image: string;
-  rating: { rate: number; count: number };
-}
-
-// Fetch categories from API
-const fetchCategories = async () => {
-  const res = await axios.get<string[]>("https://fakestoreapi.com/products/categories");
-  return res.data;
-};
-
-// Fetch products from API (all or by category)
-const fetchProducts = async (category?: string) => {
-  const url = category
-    ? `https://fakestoreapi.com/products/category/${category}`
-    : "https://fakestoreapi.com/products";
-  const res = await axios.get<Product[]>(url);
-  return res.data;
-};
-
-const Home: React.FC = () => {
+const Cart: React.FC = () => {
+  const cartItems = useSelector((state: RootState) => state.cart.items);
   const dispatch = useDispatch();
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
-  const { data: categories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: fetchCategories,
-  });
+  const totalQuantity = cartItems.reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  );
 
-  const { data: products, isLoading } = useQuery({
-    queryKey: ["products", selectedCategory],
-    queryFn: () => fetchProducts(selectedCategory),
-  });
+  const totalPrice = cartItems
+    .reduce((sum, item) => sum + item.price * item.quantity, 0)
+    .toFixed(2);
 
-  if (isLoading) return <p>Loading products...</p>;
+  const handleCheckout = () => {
+    dispatch(clearCart());
+    alert("Checkout successful! Your cart is now empty.");
+  };
+
+  if (cartItems.length === 0) {
+    return (
+      <div className="container py-5">
+        <div className="card shadow-sm border-0">
+          <div className="card-body text-center py-5">
+            <div className="display-4 mb-3">🛒</div>
+
+            <h3 className="fw-bold">Your cart is empty</h3>
+
+            <p className="text-muted mb-4">
+              Add some products to your cart and they will appear here.
+            </p>
+
+            <button className="btn btn-primary px-4">
+              Continue Shopping
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <div className="mb-4">
-        <select
-          className="form-select w-auto"
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-        >
-          <option value="">All Categories</option>
-          {categories?.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat}
-            </option>
-          ))}
-        </select>
-      </div>
+    <div className="container py-4">
+      <div className="row g-4">
+        {/* Cart Items */}
+        <div className="col-lg-8">
+          <div className="card shadow-sm border-0">
+            <div className="card-header bg-white py-3">
+              <h2 className="h4 mb-0 fw-bold">
+                🛒 Your Shopping Cart
+              </h2>
+            </div>
 
-      <div className="row">
-        {products?.map((product) => (
-          <div key={product.id} className="col-md-4 mb-4">
-            <div className="card h-100">
-              <img
-                src={product.image}
-                className="card-img-top"
-                alt={product.title}
-                onError={(e) =>
-                  ((e.target as HTMLImageElement).src = "https://via.placeholder.com/150")
-                }
-              />
-              <div className="card-body d-flex flex-column">
-                <h5 className="card-title">{product.title}</h5>
-                <p className="card-text flex-grow-1">{product.description}</p>
-                <p className="card-text">
-                  <strong>${product.price}</strong> | Rating: {product.rating.rate} ⭐
-                </p>
-                <button
-                  className="btn btn-primary mt-auto"
-                  onClick={() =>
-                    dispatch(
-                      addToCart({
-                        id: product.id,
-                        title: product.title,
-                        price: product.price,
-                        image: product.image,
-                        quantity: 1,
-                      })
-                    )
-                  }
+            <ul className="list-group list-group-flush">
+              {cartItems.map((item) => (
+                <li
+                  key={item.id}
+                  className="list-group-item py-3"
                 >
-                  Add to Cart
-                </button>
+                  <div className="row align-items-center g-3">
+                    {/* Product */}
+                    <div className="col-md-6">
+                      <div className="d-flex align-items-center">
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          width={70}
+                          height={70}
+                          className="rounded border me-3"
+                          style={{ objectFit: "contain" }}
+                        />
+
+                        <div>
+                          <h6 className="mb-1 fw-semibold">
+                            {item.title}
+                          </h6>
+
+                          <span className="badge bg-secondary">
+                            Qty: {item.quantity}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Price & Remove */}
+                    <div className="col-md-6">
+                      <div className="d-flex justify-content-md-end align-items-center gap-3">
+                        <span className="fw-bold fs-5">
+                          $
+                          {(item.price * item.quantity).toFixed(2)}
+                        </span>
+
+                        <button
+                          className="btn btn-outline-danger btn-sm"
+                          onClick={() =>
+                            dispatch(removeFromCart(item.id))
+                          }
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Order Summary */}
+        <div className="col-lg-4">
+          <div className="card shadow-sm border-0">
+            <div className="card-body">
+              <h4 className="fw-bold mb-4">Order Summary</h4>
+
+              <div className="d-flex justify-content-between mb-3">
+                <span className="text-muted">Total Items</span>
+                <span className="fw-semibold">{totalQuantity}</span>
               </div>
+
+              <div className="d-flex justify-content-between mb-3">
+                <span className="text-muted">Subtotal</span>
+                <span className="fw-semibold">${totalPrice}</span>
+              </div>
+
+              <hr />
+
+              <div className="d-flex justify-content-between mb-4">
+                <span className="fw-bold">Total Price</span>
+                <span className="fw-bold fs-4 text-success">
+                  ${totalPrice}
+                </span>
+              </div>
+
+              <button
+                className="btn btn-success w-100 py-2 fw-semibold"
+                onClick={handleCheckout}
+              >
+                Proceed to Checkout
+              </button>
+
+              <button
+                className="btn btn-outline-danger w-100 mt-2"
+                onClick={() => dispatch(clearCart())}
+              >
+                Clear Cart
+              </button>
             </div>
           </div>
-        ))}
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 
-export default Home;
+export default Cart;
